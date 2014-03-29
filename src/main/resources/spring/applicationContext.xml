@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
+      http://www.springframework.org/schema/context  
+      http://www.springframework.org/schema/context/spring-context.xsd  
+      http://www.springframework.org/schema/tx   
+      http://www.springframework.org/schema/tx/spring-tx-3.0.xsd  
+      http://www.springframework.org/schema/aop  
+      http://www.springframework.org/schema/aop/spring-aop-3.0.xsd  
+      http://www.springframework.org/schema/mvc  
+      http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+      <!-- 配置文件 -->
+	<context:component-scan base-package="com.demo">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:*.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 动态数据源的父类,其中配置的参数为子数据库的default值 -->
+	<bean id="dataSource_config" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close" abstract="true">
+		<property name="driverClass" value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.write.url}" />
+		<property name="user" value="${jdbc.write.username}" />
+		<property name="password" value="${jdbc.write.password}" />
+		<property name="maxPoolSize" value="${jdbc.maxPoolSize}" />
+		<property name="minPoolSize" value="${jdbc.minPoolSize}" />
+		<property name="initialPoolSize" value="${jdbc.initialPoolSize}"/>
+		<property name="idleConnectionTestPeriod" value="${jdbc.idleConnectionTestPeriod}"/>
+		<property name="maxIdleTime" value="${jdbc.maxIdleTime}"/>
+	</bean>
+
+	<!-- 子数据源,只读数据源热read01,只需对url,user,password重新赋值 -->
+	<bean id="read01" destroy-method="close" parent="dataSource_config">
+		<property name="jdbcUrl">
+			<value>${jdbc.read01.url}</value>
+		</property>
+		<property name="user">
+			<value>${jdbc.read01.username}</value>
+		</property>
+		<property name="password">
+			<value>${jdbc.read01.password}</value>
+		</property>
+	</bean>
+
+	<!-- 子数据源,只读数据源热read02,只需对url,user,password重新赋值 -->
+	<bean id="read02" destroy-method="close" parent="dataSource_config">
+		<property name="jdbcUrl">
+			<value>${jdbc.read02.url}</value>
+		</property>
+		<property name="user">
+			<value>${jdbc.read02.username}</value>
+		</property>
+		<property name="password">
+			<value>${jdbc.read02.password}</value>
+		</property>
+	</bean>
+
+	<!-- 子数据源,写操作主库,无需修改配置参数 -->
+	<bean id="write" parent="dataSource_config">
+		<property name="jdbcUrl">
+			<value>${jdbc.write.url}</value>
+		</property>
+		<property name="user">
+			<value>${jdbc.write.username}</value>
+		</property>
+		<property name="password">
+			<value>${jdbc.write.password}</value>
+		</property>
+	</bean>
+
+	<!-- 读写管理(统一配置) -->
+	<bean id="dataSourceKey" class="com.demo.core.db.datasource.DataSourceKey">
+		<property name="readKeyList">
+			<list value-type="java.lang.String">
+				<value>read01</value>
+				<value>read02</value>
+			</list>
+		</property>
+		<property name="writeKey">
+			<value>write</value>
+		</property>
+	</bean>
+	
+
+	<!-- 动态数据源 -->
+	<bean id="dataSource" class="com.demo.core.db.datasource.DynamicDataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<entry key="write" value-ref="write" />
+				<entry key="read01" value-ref="read01" />
+				<entry key="read02" value-ref="read02" />
+			</map>
+		</property>
+		<property name="defaultTargetDataSource" ref="write" />
+		<property name="dataSourceKey" ref="dataSourceKey" />
+	</bean>
+<!-- 
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<constructor-arg ref="dataSource" />
+	</bean> -->
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
+	    <property name="configLocation" value="classpath:mybatis-config.xml" />  
+	    <property name="dataSource" ref="dataSource" />  
+	</bean>  
+	
+	 <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+        <property name="annotationClass" value="org.springframework.stereotype.Repository"/>  
+        <property name="basePackage" value="com.demo.demo.module"/>  
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>  
+    </bean>	  
+
+	<!-- 动态数据源拦截器 -->
+	<bean id="dataSourceInterceptor" class="com.demo.core.db.interceptor.DataSourceInterceptor">
+		<property name="attributes">
+			<props>
+				<prop key="query*">read</prop>
+				<prop key="is*">read</prop>
+				<prop key="find*">read</prop>
+				<prop key="get*">read</prop>
+				<prop key="load*">read</prop>
+				<prop key="count*">read</prop>
+				<prop key="list*">read</prop>
+				<prop key="check*">read</prop>
+				<prop key="save*">write</prop>
+				<prop key="create*">write</prop>
+				<prop key="add*">write</prop>
+				<prop key="del*">write</prop>
+				<prop key="remove*">write</prop>
+				<prop key="upd*">write</prop>
+				<prop key="process*">write</prop>
+				<prop key="edit*">write</prop>
+				<prop key="reset*">write</prop>
+				<prop key="generate*">write</prop>
+				<prop key="credit*">write</prop>
+				<prop key="debit*">write</prop>
+				<prop key="send*">write</prop>
+				<prop key="*">read</prop>
+			</props>
+		</property>
+		<property name="dataSourceKey">
+			<ref bean="dataSourceKey" />
+		</property>
+	</bean>
+
+	<!-- 事务配置 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<!-- 事务管理拦截器 -->
+	<bean id="transactionInterceptor"
+		class="org.springframework.transaction.interceptor.TransactionInterceptor">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="query*">PROPAGATION_SUPPORTS,-Exception</prop>
+				<prop key="is*">PROPAGATION_SUPPORTS,-Exception</prop>
+				<prop key="find*">PROPAGATION_SUPPORTS,-Exception</prop>
+				<prop key="get*">PROPAGATION_SUPPORTS,-Exception</prop>
+				<prop key="load*">PROPAGATION_SUPPORTS,-Exception</prop>
+				<prop key="count*">PROPAGATION_SUPPORTS,-Exception</prop>
+				<prop key="list*">PROPAGATION_SUPPORTS,-Exception</prop>
+				<prop key="check*">PROPAGATION_SUPPORTS,-Exception</prop>
+				<prop key="save*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="create*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="add*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="del*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="remove*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="upd*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="process*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="edit*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="reset*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="generate*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="credit*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="debit*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="send*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="*">PROPAGATION_SUPPORTS,-Exception</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 根据Name匹配拦截器(数据源、事务) -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<property name="beanNames">
+			<list>
+				<value>*Service</value>
+			</list>
+		</property>
+		<property name="interceptorNames">
+			<list>
+				<!-- 指定获取数据源的Interceptor -->
+				<value>dataSourceInterceptor</value>
+				<!-- 事务管理的Interceptor -->
+				<value>transactionInterceptor</value>
+			</list>
+		</property>
+	</bean>
+
+</beans>  

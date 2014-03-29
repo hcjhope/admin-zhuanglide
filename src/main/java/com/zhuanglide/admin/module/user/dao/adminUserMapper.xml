@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhuanglide.admin.module.user.dao.AdminUserDao">
+	<!-- 查询管理员列表 -->  
+	<sql id="selectFrom">
+		SELECT id,  user_name ,password ,email ,mobile ,status,operator_id,create_time ,update_time FROM admin_user
+	</sql>
+	
+	<!-- 根据主键查询 -->
+    <select id="selectById" resultType="com.zhuanglide.admin.module.user.entiry.AdminUser">  
+        <include refid="selectFrom"/>
+        <where>
+        	id = #{id}
+        </where>
+    </select>
+    
+    <!-- 根据用户名查询 -->
+    <select id="selectByUserName" resultType="com.zhuanglide.admin.module.user.entiry.AdminUser">  
+        <include refid="selectFrom"/>
+        <where>
+        	user_name = #{userName}
+        </where>
+    </select>
+    
+    <!-- 分页查询 -->
+    <select id="selectList" resultType="com.zhuanglide.admin.module.user.entiry.AdminUser">  
+        <include refid="selectFrom"/>
+        <where>
+			<if test="null!=params.status">
+				AND	status = #{params.status}
+			</if>
+			<if test="null!=params.userName">
+				AND user_name LIKE #{params.userName}
+			</if>
+        </where>
+        LIMIT #{limit},#{size}
+    </select>
+    
+    <!-- 更新 -->
+    <update id="updateAdminUser">
+    	UPDATE admin_user 
+    	<set>
+    		<if test="null!=password">password=#{adminUser.password},</if>
+    		<if test="null!=email">email=#{adminUser.email},</if>
+    		<if test="null!=mobile">mobile=#{adminUser.mobile},</if>
+    		<if test="null!=status">status=#{adminUser.status},</if>
+    		<if test="operatorId">operator_id=#{adminUser.operatorId},</if>
+    		updateTime=NOW()
+    	</set>
+    	<where>
+    		id = #{adminUser.id}
+    	</where>
+    </update>
+    
+    <!-- 插入 -->
+    <insert id="insertAdminUser" useGeneratedKeys="true" keyProperty="id">
+    	INSERT INTO admin_user (user_name ,password ,email ,mobile ,status ,operator_id,create_time ,update_time)
+    	VALUES (#{adminUser.userName},#{adminUser.password},#{adminUser.email},#{adminUser.mobile},#{adminUser.status},${adminUser.operatorId},NOW(),NOW())
+    </insert>
+</mapper>

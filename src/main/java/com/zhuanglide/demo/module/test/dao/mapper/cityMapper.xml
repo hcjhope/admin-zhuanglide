@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.demo.module.test.dao.CityDao">
+	<!-- 查询学生列表 -->  
+    <select id="selectCityList" resultType="com.demo.demo.module.test.entry.City">  
+        <![CDATA[ 
+            SELECT * FROM city 
+        ]]>   
+    </select>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.demo.module.test.dao.UserDao">
+	<!-- 查询用法 -->
+	<select id="selectList" resultType="com.demo.demo.module.test.entry.User">  
+            SELECT * FROM user 
+		<!-- name 用到like模糊查询事，需要自己按需要自己在原name的值上前后增加%,name="%"+name+"%" -->		
+		<where>
+		</where>
+		
+		<!-- where 或者用trim标签替换
+		<trim prefix="WHERE" suffixOverrides=" AND | OR ">
+			<if test="null!=params.userName">
+       	 		AND user_name LIKE #{params.userName}
+			</if>
+		</trim>
+		 -->
+       		LIMIT #{limit},#{size}
+	</select>
+
+	<!-- insert 用法 -->
+	<insert id="insertUser" parameterType="com.demo.demo.module.test.entry.User" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO user (user_name,password,create_time,update_time) VALUES (#{userName},MD5(${password}),NOW(),NOW())
+	</insert>
+	
+	
+	<!-- update 用法 -->
+	<update id="updateUser" parameterType="com.demo.demo.module.test.entry.User">
+		UPDATE user
+		<set>
+			<if test="null!=userName">
+				user_name=#{userName}
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+</mapper>

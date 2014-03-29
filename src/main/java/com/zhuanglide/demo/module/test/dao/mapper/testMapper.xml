@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.demo.module.test.dao.TestDao">
+	<!-- 查询学生列表 -->  
+    <select id="selectTestList"  resultType="com.demo.demo.module.test.entry.Test">  
+        <![CDATA[ 
+            SELECT * FROM test 
+        ]]>   
+    </select>
+    <!-- 查询学生列表 -->  
+    <select id="selectCityList" resultType="com.demo.demo.module.test.entry.City">  
+        <![CDATA[ 
+            SELECT * FROM city 
+        ]]>   
+    </select>
+    
+    <insert id="insertTest" parameterType="com.demo.demo.module.test.entry.Test" useGeneratedKeys="true" keyProperty="id">
+    	INSERT INTO test (name) VALUES (#{name})
+    </insert>
+</mapper>
