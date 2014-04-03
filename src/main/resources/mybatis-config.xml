@@ -5,8 +5,6 @@
           <setting name="mapUnderscoreToCamelCase" value="true" />
     </settings>
 	<mappers>
-		<mapper resource="com/demo/demo/module/test/dao/mapper/cityMapper.xml"/>
-		<mapper resource="com/demo/demo/module/test/dao/mapper/testMapper.xml"/>
-		<mapper resource="com/demo/demo/module/test/dao/mapper/userMapper.xml"/>
+		<mapper resource="com/zhuanglide/admin/module/user/dao/mapper/adminUserMapper.xml"/>
 	</mappers>
 </configuration>

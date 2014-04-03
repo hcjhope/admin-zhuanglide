@@ -105,10 +105,10 @@
 		<property name="defaultTargetDataSource" ref="write" />
 		<property name="dataSourceKey" ref="dataSourceKey" />
 	</bean>
-<!-- 
+	
 	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
 		<constructor-arg ref="dataSource" />
-	</bean> -->
+	</bean>
 	
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
 	    <property name="configLocation" value="classpath:mybatis-config.xml" />  

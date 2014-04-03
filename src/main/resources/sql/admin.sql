@@ -13,17 +13,15 @@ create table admin_user (
   unique key uidx_user_name (user_name)
 ) engine=innodb default charset=utf8 comment='用户表';
 
-
 -- 角色组
 create table role_group(
 	id int(11) unsigned not null auto_increment comment '主键',
 	group_name varchar(50) not null default '' comment '角色组名称',
-	group_desc varchar(200) not null default '' comment '角色组秒',
-	create_time timestamp not null default current_timestamp comment '创建时间',
+	group_desc varchar(200) not null default '' comment '角色组描述',
 	primary key(id),
 )engine=innodb default charset=utf8 comment='权限表';
 
-insert into role_group (group_code,group_name,group_desc,create_time) values(1,'超级管理员','超级管理员',now());
+insert into role_group (group_code,group_name,group_desc,create_time) values(1,'超级管理员','超级管理员');
 
 -- 角色表
 create table role(
@@ -31,7 +29,6 @@ create table role(
 	group_id int(11) unsigned not null default 0 comment '角色组ID',
 	role_name varchar(50) not null default '' comment '角色名称',
 	role_desc varchar(200) not null default '' comment '角色描述',
-	create_time timestamp not null default current_timestamp comment '创建时间',
 	primary key(id),
 	index idx_groupcode(group_code)
 )engine=innodb default charset=utf8 comment='角色表';
@@ -52,7 +49,6 @@ create table role_auth(
 	id int(11) unsigned not null auto_increment comment '主键',
 	role_id int(11) unsigned not null default 0 comment '角色ID',
 	auth_id int(11) unsigned not null default 0 comment '权限ID',
-	create_time timestamp not null default current_timestamp comment '创建时间',
 	primary key (id),
 	index idx_roleid_authid(role_id,auth_id)
 )engine=innodb default charset=utf8 comment='角色权限表';

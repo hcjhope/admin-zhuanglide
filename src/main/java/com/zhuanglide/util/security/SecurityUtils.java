@@ -1,4 +1,4 @@
-package com.zhuanglide.util;
+package com.zhuanglide.util.security;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +47,56 @@ public class SecurityUtils {
             return null;
         }
     }
-
+    
+    
+    private static final String DEFAULT_SECRETKEY = "zhuanglide_&12~48@)^*A";
+    
+    /**
+     * RC4加密
+     * @param input
+     * @return
+     */
+    public static String RC4Encrypt(String str){
+    	return RC4Encrypt(str,DEFAULT_SECRETKEY);
+    }
+    
+    /**
+     * RC4解密
+     * @param encryptStr
+     * @param secretKey
+     * @return
+     */
+    public static String RC4Decrypt(String encryptStr){
+    	return RC4Encrypt(encryptStr,DEFAULT_SECRETKEY);
+    }
+    
+    /**
+     * RC4加密
+     * @param input
+     * @return
+     */
+    public static String RC4Encrypt(String str,String secretKey){
+    	if(null==str) return null;
+    	String security = Base64.encode(RC4.encrypt(str.getBytes(), secretKey.getBytes()));
+    	return security.replaceAll("/", "_");
+    }
+    
+    /**
+     * RC4解密
+     * @param encryptStr
+     * @param secretKey
+     * @return
+     */
+    public static String RC4Decrypt(String encryptStr,String secretKey){
+    	if(null==encryptStr) return null;
+    	return new String(RC4.encrypt(Base64.decode(encryptStr.replaceAll("_", "/")), secretKey.getBytes()));
+    }
+    
+    /**
+     * RC4解密
+     * @param input
+     * @return
+     */
     public static String MD5Encode(InputStream input) {
         try {
             MessageDigest messagedigest = MessageDigest.getInstance("MD5");
